@@ -30,15 +30,56 @@ const addWidget = async (req, res, next) => {
 
   return res.status(201).json({ message: "widget added", data: widgetCreated });
 };
-
+const getAllWidgets = async (req, res, next) => {};
 const deleteWidget = async (req, res, next) => {
   const user = req.user;
   if (user.role !== "admin") {
-    return next(new ApiError({ message: "cannot delete widge", status: 500 }));
+    return next(new ApiError({ message: "cannot delete widget", status: 500 }));
   }
+  const { dashboardId, widgetId } = req.params;
+  await Promise.all([
+    Widget.updateOne({ _id: widgetId }, { $set: { isDeleted: true } }),
+    Dashboard.updateOne({ _id: dashboardId }, { $pull: { widgets: widgetId } }),
+  ]);
+  return res.status(200).json({ message: "widget deleted successfully" });
 };
 
+const updateWidget = async (req, res, next) => {
+  const user = req.user;
+  if (user.role !== "admin") {
+    return next(new ApiError({ message: "cannot delete widget", status: 500 }));
+  }
+  const { dashboardId, widgetId } = req.params;
+  const { updateType } = req.body;
+  let updateWidgetObject;
+  if (updateType === "config") {
+    const { config } = req.body;
+    updateWidgetObject = await Widget.findByIdAndUpdate(
+      widgetId,
+      {
+        $set: { config },
+      },
+      { new: true }
+    );
+  }
+  //like position, size etc
+  if (updateType === "metadata") {
+    const { metadata } = req.body;
+    updateWidgetObject = await Widget.findByIdAndUpdate(
+      widgetId,
+      {
+        $set: { ...metadata },
+      },
+      { new: true }
+    );
+  }
+  return res
+    .status(201)
+    .json({ data: updateWidgetObject, message: "widget updated" });
+};
 
 module.exports = {
   addWidget,
+  deleteWidget,
+  updateWidget,
 };

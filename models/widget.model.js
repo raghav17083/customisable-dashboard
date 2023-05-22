@@ -8,6 +8,7 @@ const widgetSchema = new Schema(
     dashboardId: { type: Schema.Types.ObjectId, ref: "Dashboard" },
     createdBy: { type: Schema.Types.ObjectId, required: true },
     isDelete: { type: Boolean, default: false },
+
     position: {
       x: Number,
       y: Number,
