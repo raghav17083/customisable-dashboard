@@ -30,7 +30,15 @@ const addWidget = async (req, res, next) => {
 
   return res.status(201).json({ message: "widget added", data: widgetCreated });
 };
-const getAllWidgets = async (req, res, next) => {};
+const getAllWidgets = async (req, res, next) => {
+  const { dashboardId } = req.params;
+  const dashboardWidgets = await Widget.find({
+    dashboardId,
+    isDeleted: false,
+  }).lean();
+  res.status(200).json({ data: dashboardWidgets });
+};
+
 const deleteWidget = async (req, res, next) => {
   const user = req.user;
   if (user.role !== "admin") {
@@ -42,6 +50,12 @@ const deleteWidget = async (req, res, next) => {
     Dashboard.updateOne({ _id: dashboardId }, { $pull: { widgets: widgetId } }),
   ]);
   return res.status(200).json({ message: "widget deleted successfully" });
+};
+
+const getWidget = async (req, res, next) => {
+  const { dashboardId, widgetId } = req.params;
+  const widget = await Widget.findOne({ _id: widgetId, isDeleted: false });
+  res.status(200).json({ data: widget });
 };
 
 const updateWidget = async (req, res, next) => {
@@ -82,4 +96,6 @@ module.exports = {
   addWidget,
   deleteWidget,
   updateWidget,
+  getAllWidgets,
+  getWidget,
 };
